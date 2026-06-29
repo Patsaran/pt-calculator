@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PT Package Calculator — Anytime Fitness</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F7F6F2;
+    --surface: #FFFFFF;
+    --surface2: #F0EFE9;
+    --border: #E2E0D8;
+    --text: #1A1A18;
+    --muted: #7A7870;
+    --accent: #D94F2B;
+    --accent-bg: #FDF1EE;
+    --info: #1A5FA8;
+    --info-bg: #EBF2FB;
+    --success: #2A7A4B;
+    --success-bg: #EBF6EF;
+    --warn: #A05C0A;
+    --warn-bg: #FDF3E3;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0 0 4rem;
+  }
+
+  header {
+    background: var(--accent);
+    color: #fff;
+    padding: 1.25rem 1.5rem 1rem;
+  }
+  header .brand { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.8; margin-bottom: 2px; }
+  header h1 { font-size: 20px; font-weight: 600; }
+
+  .container { max-width: 560px; margin: 0 auto; padding: 1.5rem 1rem 0; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+  .card-title {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 1rem;
+  }
+
+  .fields { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .field label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 4px; }
+  .field select {
+    width: 100%;
+    padding: 9px 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    background: var(--bg);
+    font-size: 15px;
+    color: var(--text);
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237A7870' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 28px;
+    cursor: pointer;
+  }
+  .field select:focus { outline: 2px solid var(--accent); outline-offset: 1px; border-color: transparent; }
+  .field.full { grid-column: 1 / -1; }
+
+  .metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 1rem; }
+  .metric {
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    padding: .75rem .75rem .6rem;
+    text-align: center;
+  }
+  .metric .val { font-size: 26px; font-weight: 600; color: var(--text); line-height: 1; }
+  .metric .lbl { font-size: 11px; color: var(--muted); margin-top: 4px; }
+
+  .needed-row {
+    background: var(--accent-bg);
+    border: 1px solid #F2C4B8;
+    border-radius: var(--radius-sm);
+    padding: .75rem 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .needed-row .label { font-size: 13px; color: var(--accent); }
+  .needed-row .num { font-size: 22px; font-weight: 700; color: var(--accent); }
+
+  .pkg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; }
+  .pkg {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 10px 8px;
+    text-align: center;
+    position: relative;
+    transition: border-color .15s;
+  }
+  .pkg .pn { font-size: 17px; font-weight: 600; }
+  .pkg .pp { font-size: 13px; color: var(--muted); margin-top: 1px; }
+  .pkg .pper { font-size: 11px; color: var(--muted); }
+  .pkg .pdiff { font-size: 11px; font-weight: 500; margin-top: 5px; }
+
+  .pkg.best {
+    border: 2px solid var(--accent);
+    background: var(--accent-bg);
+  }
+  .pkg.best .pn { color: var(--accent); }
+  .badge-best {
+    display: inline-block;
+    background: var(--accent);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    padding: 2px 7px;
+    border-radius: 20px;
+    margin-bottom: 4px;
+  }
+  .pkg.ok { border-color: #B8D9C5; }
+  .pkg.ok .pdiff { color: var(--success); }
+  .pkg.low { opacity: 0.4; }
+  .pkg.over { opacity: 0.35; }
+  .pkg.best .pdiff { color: var(--accent); }
+
+  .rec {
+    border-left: 3px solid var(--accent);
+    padding: .9rem 1rem;
+    background: var(--surface);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    font-size: 13.5px;
+    line-height: 1.7;
+    margin-top: .25rem;
+  }
+  .rec strong { color: var(--text); }
+  .rec .sub { color: var(--muted); font-size: 13px; }
+
+  .starter-card {
+    background: var(--info-bg);
+    border: 1px solid #C0D8F0;
+    border-radius: var(--radius-sm);
+    padding: .75rem 1rem;
+    font-size: 13px;
+    color: var(--info);
+    margin-top: .75rem;
+    line-height: 1.6;
+  }
+  .starter-card strong { font-weight: 600; }
+
+  .compare-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .compare-table th {
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    color: var(--muted);
+    padding: 0 8px 8px;
+  }
+  .compare-table th:not(:first-child) { text-align: right; }
+  .compare-table td { padding: 7px 8px; border-top: 1px solid var(--border); }
+  .compare-table td:not(:first-child) { text-align: right; }
+  .compare-table tr.highlight td { background: var(--accent-bg); color: var(--accent); font-weight: 600; }
+  .compare-table tr.highlight td:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+  .compare-table tr.highlight td:last-child  { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+
+  footer { text-align: center; font-size: 12px; color: var(--muted); margin-top: 2rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">Anytime Fitness · Lotus Bang Krua Sai Noi</div>
+  <h1>คำนวณแพ็กเกจ PT</h1>
+</header>
+
+<div class="container">
+
+  <!-- INPUT -->
+  <div class="card">
+    <div class="card-title">ข้อมูลลูกค้า</div>
+    <div class="fields">
+      <div class="field">
+        <label>ระยะเวลา</label>
+        <select id="months">
+          <option value="1">1 เดือน</option>
+          <option value="2">2 เดือน</option>
+          <option value="3" selected>3 เดือน</option>
+          <option value="4">4 เดือน</option>
+          <option value="6">6 เดือน</option>
+          <option value="12">12 เดือน</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>วันออกกำลังกาย/สัปดาห์</label>
+        <select id="days">
+          <option value="1">1 วัน</option>
+          <option value="2">2 วัน</option>
+          <option value="3" selected>3 วัน</option>
+          <option value="4">4 วัน</option>
+          <option value="5">5 วัน</option>
+          <option value="6">6 วัน</option>
+        </select>
+      </div>
+      <div class="field full">
+        <label>สัดส่วนวันที่ใช้ PT</label>
+        <select id="ratio">
+          <option value="1">ทุกวัน (100%) — เทรนกับ PT ทุกเซสชัน</option>
+          <option value="0.67">2 ใน 3 วัน (~67%) — ออกเองบ้าง</option>
+          <option value="0.5">ครึ่งหนึ่ง (50%) — แบ่งครึ่ง</option>
+          <option value="0.33">1 ใน 3 วัน (~33%) — PT เฉพาะวันหลัก</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- METRICS -->
+  <div class="card">
+    <div class="card-title">สรุปตัวเลข</div>
+    <div class="metrics">
+      <div class="metric"><div class="val" id="mWeeks">—</div><div class="lbl">สัปดาห์</div></div>
+      <div class="metric"><div class="val" id="mDays">—</div><div class="lbl">วันออกกำลังกาย</div></div>
+      <div class="metric"><div class="val" id="mNeeded">—</div><div class="lbl">เซสชัน PT</div></div>
+    </div>
+    <div class="needed-row">
+      <span class="label">เซสชันที่ต้องการ</span>
+      <span class="num" id="neededBig">—</span>
+    </div>
+  </div>
+
+  <!-- PACKAGES -->
+  <div class="card">
+    <div class="card-title">เปรียบเทียบแพ็กเกจ</div>
+    <div class="pkg-grid" id="pkgGrid"></div>
+    <div class="rec" id="rec" style="margin-top:.75rem;"></div>
+    <div class="starter-card">
+      ⭐ <strong>Starter 3 ครั้ง — 2,000 บาท</strong><br>
+      สำหรับลูกค้าใหม่ที่อยากทดลองก่อนตัดสินใจซื้อแพ็กใหญ่
+    </div>
+  </div>
+
+  <!-- COMPARISON TABLE -->
+  <div class="card">
+    <div class="card-title">ตารางแพ็กเกจทั้งหมด</div>
+    <table class="compare-table" id="tableEl">
+      <thead>
+        <tr>
+          <th>แพ็กเกจ</th>
+          <th>ราคา (฿)</th>
+          <th>ราคา/ครั้ง</th>
+          <th>ขาด/เกิน</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <footer>Anytime Fitness · Lotus Bang Krua Sai Noi · PT Calculator</footer>
+</div>
+
+<script>
+const PKGS = [
+  { n: 3,   price: 3750 },
+  { n: 12,  price: 13800 },
+  { n: 24,  price: 25680 },
+  { n: 36,  price: 35100 },
+  { n: 50,  price: 47500 },
+  { n: 72,  price: 64800 },
+  { n: 100, price: 87500 },
+  { n: 150, price: 120000 },
+  { n: 200, price: 150000 },
+];
+
+function fmt(n) { return n.toLocaleString('th-TH'); }
+
+function calc() {
+  const months = +document.getElementById('months').value;
+  const days   = +document.getElementById('days').value;
+  const ratio  = +document.getElementById('ratio').value;
+
+  const weeks   = months * 4.33;
+  const exDays  = Math.round(weeks * days);
+  const needed  = Math.round(exDays * ratio);
+
+  document.getElementById('mWeeks').textContent  = Math.round(weeks);
+  document.getElementById('mDays').textContent   = exDays;
+  document.getElementById('mNeeded').textContent = needed;
+  document.getElementById('neededBig').textContent = needed + ' ครั้ง';
+
+  const best = PKGS.reduce((a, b) =>
+    Math.abs(b.n - needed) < Math.abs(a.n - needed) ? b : a
+  );
+
+  // Package grid
+  const grid = document.getElementById('pkgGrid');
+  grid.innerHTML = PKGS.map(p => {
+    const per  = Math.round(p.price / p.n);
+    const diff = p.n - needed;
+    const diffTxt = diff === 0 ? 'พอดี' : diff > 0 ? `+${diff} ครั้ง` : `${diff} ครั้ง`;
+    const diffStyle = diff < -2 ? 'color:#c0392b' : diff === 0 ? 'color:#2A7A4B' : 'color:#7A7870';
+    let cls = '', badge = '';
+    if (p.n === best.n) { cls = 'best'; badge = '<div class="badge-best">แนะนำ</div>'; }
+    else if (Math.abs(diff) <= needed * 0.2) cls = 'ok';
+    else if (p.n < needed * 0.5) cls = 'low';
+    else if (p.n > needed * 2.2) cls = 'over';
+    return `<div class="pkg ${cls}">
+      ${badge}
+      <div class="pn">${p.n} ครั้ง</div>
+      <div class="pp">${fmt(p.price)} ฿</div>
+      <div class="pper">${fmt(per)} ฿/ครั้ง</div>
+      <div class="pdiff" style="${diffStyle}">${diffTxt}</div>
+    </div>`;
+  }).join('');
+
+  // Recommendation
+  const diff = best.n - needed;
+  const per  = Math.round(best.price / best.n);
+  let html = `<strong>${best.n} ครั้ง — ${fmt(best.price)} บาท</strong> (${fmt(per)} บาท/ครั้ง)<br>`;
+  if (diff > 0)  html += `<span class="sub">มีเซสชันเผื่อ ${diff} ครั้ง สามารถต่อยอดหรือ re-assess ได้</span>`;
+  else if (diff < 0) html += `<span class="sub" style="color:#c0392b">แพ็กนี้ขาด ${Math.abs(diff)} ครั้งจากแผน — แนะนำซื้อเพิ่มหลังหมด</span>`;
+  else html += `<span class="sub">ครบพอดีตามแผน</span>`;
+  const alt = PKGS.filter(p => p.n >= needed * 0.65 && p.n < best.n);
+  if (alt.length) {
+    const a = alt[alt.length - 1];
+    html += `<br><span class="sub">ทางเลือก: ${a.n} ครั้ง (${fmt(a.price)} ฿) — เทรน PT บางวัน ออกเองส่วนที่เหลือ</span>`;
+  }
+  document.getElementById('rec').innerHTML = html;
+
+  // Table
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = PKGS.map(p => {
+    const per  = Math.round(p.price / p.n);
+    const diff = p.n - needed;
+    const diffTxt = diff === 0 ? 'พอดี' : diff > 0 ? `+${diff}` : `${diff}`;
+    const cls = p.n === best.n ? 'highlight' : '';
+    return `<tr class="${cls}">
+      <td>${p.n} ครั้ง${p.n === best.n ? ' ★' : ''}</td>
+      <td>${fmt(p.price)}</td>
+      <td>${fmt(per)}</td>
+      <td>${diffTxt}</td>
+    </tr>`;
+  }).join('');
+}
+
+['months','days','ratio'].forEach(id =>
+  document.getElementById(id).addEventListener('change', calc)
+);
+calc();
+</script>
+</body>
+</html>
